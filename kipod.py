@@ -5,8 +5,8 @@ from datetime import datetime
 
 
 
-USER = 'fedor.dynga@altezza.org'
-PASSWORD = 'changeMe@1'
+USER = ''
+PASSWORD = ''
 HOST = "https://tech.kipod.ru/oauth2/v1/auth/authenticate"
 Payload = {"name":"fedor.dynga@altezza.org","password":"changeMe!1","rememberme":"false"}
 Header_ = {"content-type": "application/json"}
