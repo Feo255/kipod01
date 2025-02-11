@@ -1,7 +1,7 @@
 import json
 import requests
 import csv
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 
@@ -10,8 +10,8 @@ PASSWORD = ''
 HOST = "https://tech.kipod.ru/oauth2/v1/auth/authenticate"
 Payload = {"name":"fedor.dynga@altezza.org","password":"changeMe!1","rememberme":"false"}
 Header_ = {"content-type": "application/json"}
-since = "2025-01-31T21:00:00.000Z"
-until = "2025-02-27T20:59:59.999Z"
+since = "2025-02-01T21:00:00.000Z"
+until = "2025-02-10T20:00:00.000Z"
 
 Payload2 = json.dumps(Payload)
 
@@ -21,26 +21,62 @@ def auth(): # authentication
     return n7token
 
 def get_info(auth_token, since_, until_): #getting the infor from the web sile
-  payl = {"since":"{}".format(since_),
-          "until":"{}".format(until_),
-          "order":"DESC",
-          "limit":500,
-          "topics_by_modules":{"KX.ObjectTrack":["LineCrossed"]},
-          "channel":{"ids":[3272,3270]},
-          "domain":"OTHER",
-          "load_more_iteration":0,
-          "event_search_request_source":"SEARCH_PAGE",
-          "raw_filter_params":{"tab":"other","locations":["3272_CHANNEL","3270_CHANNEL"],
-                               "timerange":"1738357200000:1740776399999",
-                               "eventType":["KX.ObjectTrack:LineCrossed"]}
-          }
+
+  ev_list = []
+
+  start_time = datetime.strptime(since_, '%Y-%m-%dT%H:%M:%S.%fZ')
+  end_time = datetime.strptime(until_, '%Y-%m-%dT%H:%M:%S.%fZ')
+
   head = {"content-type": "application/json",
           "authorization": "Bearer {}".format(auth_token)
         }
-  payl2 = json.dumps(payl)
-  resp = requests.post('https://tech.kipod.ru/api/v1/events/search', data=payl2, headers=head)
-  channels_list = json.loads(resp.text)
-  return channels_list
+  #payl2 = json.dumps(payl)
+  offset = 0
+  limit_ = 500
+
+  current_time = start_time
+  while current_time <= end_time:
+    since_2 =  current_time.isoformat() + 'Z'
+    until_time = current_time
+    until_time += timedelta(hours=1)
+    until_2 = until_time.isoformat() + 'Z'
+    payl = {"since": "{}".format(since_2),
+            "until": "{}".format(until_2),
+            "order": "DESC",
+            "limit": "{}".format(limit_),
+            "topics_by_modules": {"KX.ObjectTrack": ["LineCrossed"]},
+            "channel": {"ids": [3272, 3270]},
+            "domain": "OTHER",
+            "load_more_iteration": "{}".format(offset),
+            "event_search_request_source": "SEARCH_PAGE",
+            "raw_filter_params": {"tab": "other", "locations": ["3272_CHANNEL", "3270_CHANNEL"],
+                                  "timerange": "1738357200000:1740776399999",
+                                  "eventType": ["KX.ObjectTrack:LineCrossed"]}
+            }
+    payl2 = json.dumps(payl)
+    print(payl2)
+
+    resp = requests.post('https://tech.kipod.ru/api/v1/events/search', data=payl2, headers=head)
+
+    # Check for request success
+    if resp.status_code != 200:
+      print(f"Error: {resp.status_code}")
+      break
+    #print(len(resp))
+
+    data = resp.json()
+    #print(data)
+    print("data", len(data))
+
+
+    for y in range(len(data)):
+        ev_list.append(data[y])
+    print("chanel", len(ev_list))
+    current_time += timedelta(hours=1)
+
+
+  return ev_list
+
 
 def file_record(info_n): # запись фацйла
     info_m = []
@@ -67,7 +103,8 @@ token = auth()
 #print(token)
 t = list(token.values())[0]
 #print(t)
+#print(since, until)
 info_k = get_info(t, since, until)
-#print('\n'.join(str(el) for el in info_n ))
+#print(info_k)
 file_record(info_k)
 print("Файл сохранён")
