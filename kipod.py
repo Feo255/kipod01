@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 USER = ''
 PASSWORD = ''
 HOST = "https://tech.kipod.ru/oauth2/v1/auth/authenticate"
-Payload = {"name":"fedor.dynga@altezza.org","password":"changeMe!1","rememberme":"false"}
+Payload = {}
 Header_ = {"content-type": "application/json"}
 since = "2025-02-01T21:00:00.000Z"
 until = "2025-02-10T20:00:00.000Z"
